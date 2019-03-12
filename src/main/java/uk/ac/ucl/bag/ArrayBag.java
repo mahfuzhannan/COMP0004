@@ -1,22 +1,26 @@
 package uk.ac.ucl.bag;
 
+import uk.ac.ucl.bag.exceptions.BagException;
+
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.ArrayList;
 
 /*
    This class implements Bags using an ArrayList as the internal data structure.
  */
-public class ArrayBag<T extends Comparable> extends AbstractBag<T> {
+public class ArrayBag<T> extends AbstractBag<T> {
+
     /*
-       Objects of class Element store a value and its occurrence count. This class is part of the
-       private infrastructure used by ArrayBag and cannot be used outside the class scope. As it
-       is used to implement the ArrayBag data structure the instance variables are public, strict
-       encapsulation not being needed (the class is being used like a C struct).
-       Note that the class is static (nested top level class) and does not have access to the scope
-       of class ArrayBag even though it is nested inside the class. This means that the type variable
-       T is not in scope, so class Element has to be declared using a different type variable E.
-     */
-    private static class Element<E extends Comparable> {
+           Objects of class Element store a value and its occurrence count. This class is part of the
+           private infrastructure used by ArrayBag and cannot be used outside the class scope. As it
+           is used to implement the ArrayBag data structure the instance variables are public, strict
+           encapsulation not being needed (the class is being used like a C struct).
+           Note that the class is static (nested top level class) and does not have access to the scope
+           of class ArrayBag even though it is nested inside the class. This means that the type variable
+           T is not in scope, so class Element has to be declared using a different type variable E.
+         */
+    private static class Element<E> {
         public int count;
         public E value;
 
@@ -44,9 +48,14 @@ public class ArrayBag<T extends Comparable> extends AbstractBag<T> {
         this.contents = new ArrayList<>();
     }
 
+    public ArrayBag(int maxSize, Comparator<T> comparator) throws BagException {
+        this(maxSize);
+        this.comparator = comparator;
+    }
+
     public void add(T value) throws BagException {
-        for (Element element : contents) {
-            if (element.value.compareTo(value) == 0) // Must use compareTo to compare values.
+        for (Element<T> element : contents) {
+            if (compareValues(element.value, value) == 0) // Must use compareTo to compare values.
             {
                 element.count++;
                 return;
@@ -66,8 +75,8 @@ public class ArrayBag<T extends Comparable> extends AbstractBag<T> {
     }
 
     public boolean contains(T value) {
-        for (Element element : contents) {
-            if (element.value.compareTo(value) == 0) {
+        for (Element<T> element : contents) {
+            if (compareValues(element.value, value) == 0) {
                 return true;
             }
         }
@@ -75,8 +84,8 @@ public class ArrayBag<T extends Comparable> extends AbstractBag<T> {
     }
 
     public int countOf(T value) {
-        for (Element element : contents) {
-            if (element.value.compareTo(value) == 0) {
+        for (Element<T> element : contents) {
+            if (compareValues(element.value, value) == 0) {
                 return element.count;
             }
         }
@@ -85,8 +94,8 @@ public class ArrayBag<T extends Comparable> extends AbstractBag<T> {
 
     public void remove(T value) {
         for (int i = 0; i < contents.size(); i++) {
-            Element element = contents.get(i);
-            if (element.value.compareTo(value) == 0) {
+            Element<T> element = contents.get(i);
+            if (compareValues(element.value, value) == 0) {
                 element.count--;
                 if (element.count == 0) {
                     contents.remove(element);

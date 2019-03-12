@@ -1,12 +1,8 @@
 package uk.ac.ucl.bag;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import uk.ac.ucl.bag.exceptions.BagException;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.util.Comparator;
 
 /**
  * A factory to create Bag objects. The class is implemented as a Singleton, such that only one factory
@@ -51,7 +47,15 @@ public class BagFactory<T extends Comparable> {
      *                      which a bag object can be created.
      */
     public Bag<T> getBag() throws BagException {
-        return getBag(Bag.MAX_SIZE);
+        return getBag(Bag.MAX_SIZE, null);
+    }
+
+    public Bag<T> getBag(int maxSize) throws BagException {
+        return getBag(maxSize, null);
+    }
+
+    public Bag<T> getBag(Comparator<T> comparator) throws BagException {
+        return getBag(Bag.MAX_SIZE, comparator);
     }
 
     /**
@@ -63,17 +67,16 @@ public class BagFactory<T extends Comparable> {
      * @throws BagException If the class is not recognised as one from
      *                      which a bag object can be created.
      */
-    public Bag<T> getBag(int maxSize) throws BagException {
+    public Bag<T> getBag(int maxSize, Comparator<T> comparator) throws BagException {
         if (bagClass.equals("ArrayBag")) {
-            return new ArrayBag<T>(maxSize);
+            return new ArrayBag<T>(maxSize, comparator);
         }
         if (bagClass.equals("MapBag")) {
-            return new MapBag<T>(maxSize);
+            return new MapBag<T>(maxSize, comparator);
         }
         if (bagClass.equals("LinkedListBag")) {
-            return new LinkedListBag<T>(maxSize);
+            return new LinkedListBag<T>(maxSize, comparator);
         }
-        throw new BagException
-                ("Attempting to use BagFactory to create something that is not a Bag");
+        throw new BagException("Attempting to use BagFactory to create something that is not a Bag");
     }
 }

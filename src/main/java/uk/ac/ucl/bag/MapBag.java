@@ -1,10 +1,13 @@
 package uk.ac.ucl.bag;
 
+import uk.ac.ucl.bag.exceptions.BagException;
+
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class MapBag<T extends Comparable> extends AbstractBag<T> {
+public class MapBag<T> extends AbstractBag<T> {
 
     private Map<T, Integer> bag;
 
@@ -13,8 +16,18 @@ public class MapBag<T extends Comparable> extends AbstractBag<T> {
         bag = new HashMap<>();
     }
 
+    public MapBag(Comparator<T> comparator) {
+        super(comparator);
+        bag = new HashMap<>();
+    }
+
     public MapBag(int maxSize) throws BagException {
         super(maxSize);
+        bag = new HashMap<>();
+    }
+
+    public MapBag(int maxSize, Comparator<T> comparator) throws BagException {
+        super(maxSize, comparator);
         bag = new HashMap<>();
     }
 
@@ -33,19 +46,30 @@ public class MapBag<T extends Comparable> extends AbstractBag<T> {
     @Override
     public void addWithOccurrences(T item, int occurrences) throws BagException {
         if (occurrences > 0) {
-            if (contains(item)) {
-                bag.compute(item, (key, val) -> val == null ? occurrences : val + occurrences);
-            } else {
+            T existingItem = getExistingItem(item);
+            if (existingItem == null) {
                 if (!isBagFull()) {
                     bag.put(item, occurrences);
                 }
+            } else {
+                bag.compute(existingItem, (key, val) -> val == null ? occurrences : val + occurrences);
             }
         }
     }
 
+    private T getExistingItem(T item) {
+        for (Iterator<T> it = bag.keySet().iterator(); it.hasNext(); ) {
+            T key = it.next();
+            if(compareValues(item, key) == 0) {
+                return key;
+            }
+        }
+        return null;
+    }
+
     @Override
     public boolean contains(T item) {
-        return bag.containsKey(item);
+        return getExistingItem(item) != null;
     }
 
     @Override

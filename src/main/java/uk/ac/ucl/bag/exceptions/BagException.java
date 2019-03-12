@@ -1,4 +1,4 @@
-package uk.ac.ucl.bag;
+package uk.ac.ucl.bag.exceptions;
 
 public class BagException extends Exception {
     /**

@@ -1,15 +1,12 @@
 package uk.ac.ucl.bag;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import uk.ac.ucl.bag.exceptions.BagException;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -114,6 +111,49 @@ public class BaseBagTest {
         assertBagHasItem("biscuits", 1);
         assertBagUniqueItems(Arrays.asList("milk", "biscuits"));
         assertBagHasExactItems(Arrays.asList("milk", "milk", "biscuits"));
+    }
+
+    @Test
+    public void testBag_withArrayList() throws BagException {
+        // Comparator will check if lists are not null,
+        // if not null run compare to for strings of first element
+        Bag<List<String>> bag = BagFactory.getInstance().getBag((Comparator<List<String>>) (o1, o2) -> {
+            if (o1 == null && o2 == null) {
+                return 0;
+            }
+            if (o1 == null && o2 != null) {
+                return 1;
+            }
+            if (o1 != null && o2 == null) {
+                return -1;
+            }
+            return o1.get(0).compareTo(o2.get(0));
+        });
+
+        // these should be the same
+        bag.add(Arrays.asList("milk", "milk", "milk"));
+        bag.add(Arrays.asList("milk"));
+
+        bag.addWithOccurrences(Arrays.asList("bread"), 3);
+
+        assertThat(bag.toString(), equalTo("[ [bread]: 3, [milk, milk, milk]: 2 ]"));
+    }
+
+    @Test
+    public void testBag_withBag() throws BagException {
+        // Comparator will check bags by size a bit pointless but you know...
+        Bag<Bag<String>> bag = BagFactory.getInstance().getBag((Comparator<Bag<String>>) (o1, o2) -> {
+            return o1.size() - o2.size();
+        });
+
+        // these should be the same
+        Bag<String> bigBag = BagFactory.getInstance().getBag();
+        bigBag.add("milk");
+        bigBag.add("bread");
+        bigBag.add("biscuits");
+        bag.add(bigBag);
+
+        assertThat(bag.toString(), equalTo("[ [ biscuits: 1, bread: 1, milk: 1 ]: 1 ]"));
     }
 
     protected void assertBagHasSize(int size) {

@@ -1,5 +1,8 @@
 package uk.ac.ucl.bag;
 
+import uk.ac.ucl.bag.exceptions.BagException;
+
+import java.util.Comparator;
 import java.util.Iterator;
 
 /**
@@ -20,7 +23,7 @@ import java.util.Iterator;
  *            As a bag implementation requires object values to be compared, an object stored in a bag must support the
  *            compareTo method defined by the Comparable interface.
  */
-public interface Bag<T extends Comparable> extends Iterable<T> {
+public interface Bag<T> extends Iterable<T>  {
     /**
      * The fixed maximum size of a bag.
      * This determines the maximum number of unique values that can

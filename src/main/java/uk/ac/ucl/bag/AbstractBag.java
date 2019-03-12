@@ -1,6 +1,8 @@
 package uk.ac.ucl.bag;
 
-import java.util.Iterator;
+import uk.ac.ucl.bag.exceptions.BagException;
+
+import java.util.*;
 
 /**
  * This class implements methods common to all concrete bag implementations
@@ -10,12 +12,17 @@ import java.util.Iterator;
  * setup to select which bag implementation is to be used.
  */
 
-public abstract class AbstractBag<T extends Comparable> implements Bag<T> {
+public abstract class AbstractBag<T> implements Bag<T> {
 
     protected int maxSize;
+    protected Comparator<T> comparator;
 
     public AbstractBag() {
         maxSize = MAX_SIZE;
+    }
+    public AbstractBag(Comparator<T> comparator) {
+        maxSize = MAX_SIZE;
+        this.comparator = comparator;
     }
 
     public AbstractBag(int maxSize) throws BagException {
@@ -26,6 +33,12 @@ public abstract class AbstractBag<T extends Comparable> implements Bag<T> {
         } else {
             this.maxSize = maxSize;
         }
+    }
+
+
+    public AbstractBag(int maxSize, Comparator<T> comparator) throws BagException {
+        this(maxSize);
+        this.comparator = comparator;
     }
 
     public Bag<T> createMergedAllOccurrences(Bag<T> b) throws BagException {
@@ -52,13 +65,28 @@ public abstract class AbstractBag<T extends Comparable> implements Bag<T> {
 
     @Override
     public String toString() {
+        SortedMap<T, Integer> itemToOccurence = new TreeMap<>(comparator);
+
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("[");
-        for (T item : this) {
-            int occurrences = countOf(item);
-            stringBuilder.append(" ").append(item).append(": ").append(occurrences).append(",");
+
+        // Just to make sure all implementations print the string in the same order
+        for (Iterator<T> it = this.allOccurrencesIterator(); it.hasNext(); ) {
+            T item = it.next();
+            itemToOccurence.computeIfPresent(item, (key, value) -> value+1);
+            itemToOccurence.putIfAbsent(item, 1);
         }
-        return stringBuilder.deleteCharAt(stringBuilder.lastIndexOf(",")).append(" ]").toString();
+
+        for (Iterator<Map.Entry<T, Integer>> it = itemToOccurence.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<T, Integer> entry = it.next();
+            stringBuilder.append(" ").append(entry.getKey()).append(": ").append(entry.getValue()).append(",");
+        }
+
+        if (stringBuilder.lastIndexOf(",") == stringBuilder.length()-1) {
+            stringBuilder.deleteCharAt(stringBuilder.length()-1);
+        }
+
+        return stringBuilder.append(" ]").toString();
     }
 
     @Override
@@ -83,5 +111,9 @@ public abstract class AbstractBag<T extends Comparable> implements Bag<T> {
             remove(item);
         }
         return this;
+    }
+
+    protected int compareValues(T value, T otherValue) {
+        return value instanceof Comparable ? ((Comparable)value).compareTo(otherValue) : comparator.compare(value, otherValue);
     }
 }

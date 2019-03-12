@@ -1,5 +1,7 @@
 package uk.ac.ucl.bag;
 
+import uk.ac.ucl.bag.exceptions.BagException;
+
 import java.util.Iterator;
 
 /**
